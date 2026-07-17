@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ArenaFlow 2026 - FIFA World Cup Smart Stadium Hub</title>
+  <!-- Google Fonts for premium typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Header Bar -->
+  <header class="app-header">
+    <div class="header-brand">
+      <div class="wc-logo">🏆</div>
+      <div class="brand-text">
+        <h1>ArenaFlow <span>2026</span></h1>
+        <p>FIFA World Cup Operations & Fan Experience Hub</p>
+      </div>
+    </div>
+    
+    <!-- View Switcher -->
+    <div class="view-switcher" id="viewSwitcher">
+      <button class="switch-btn active" id="btnFanPortal" data-view="fan">
+        <span class="btn-icon">⚽</span> Fan Companion
+      </button>
+      <button class="switch-btn" id="btnOpsPortal" data-view="ops">
+        <span class="btn-icon">📊</span> Operations Command
+      </button>
+    </div>
+
+    <!-- Right Header Tools -->
+    <div class="header-tools">
+      <div class="live-match-pill">
+        <span class="pulse-dot"></span>
+        <span id="headerMatchInfo">USA 2 - 1 ENG (72')</span>
+      </div>
+      <button class="settings-trigger" id="btnSettings" title="Configure Gemini API Key">
+        ⚙️ Settings
+      </button>
+    </div>
+  </header>
+
+  <!-- Settings Modal (Glassmorphism Modal) -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="settings-modal">
+      <h2>Configure Generative AI Settings</h2>
+      <p>Configure a Gemini API Key to enable live GenAI analysis, incident triage, and multilingual translations. If left blank, ArenaFlow will fall back to its internal simulated engine.</p>
+      
+      <div class="form-group">
+        <label for="apiKeyInput">Gemini API Key</label>
+        <div class="input-with-toggle">
+          <input type="password" id="apiKeyInput" placeholder="AIzaSy...">
+          <button type="button" id="toggleApiKey">👁️</button>
+        </div>
+        <small class="help-text">Your key is stored locally in your browser and never sent to any server other than Google's Gemini API endpoints.</small>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="btnCancelSettings">Close</button>
+        <button class="btn btn-primary" id="btnSaveSettings">Save Key</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification Banner -->
+  <div class="notification-toast-container" id="toastContainer"></div>
+
+  <!-- MAIN APP CONTAINER -->
+  <main class="app-main-content">
+    
+    <!-- ========================================== -->
+    <!-- VIEW 1: FAN COMPANION (ArenaCompanion)      -->
+    <!-- ========================================== -->
+    <section class="portal-view active" id="fanPortalView">
+      
+      <!-- Welcome Hero Banner -->
+      <div class="fan-hero-banner">
+        <img src="stadium_hero.png" alt="MetLife Stadium World Cup 2026" class="hero-image">
+        <div class="hero-overlay">
+          <h2>Welcome</h2>
+          <p>FIFA World Cup 2026™ Venue Guide</p>
+        </div>
+      </div>
+      
+      <div class="card stadium-directory-card">
+        <div class="card-header">
+          <h3>🏟️ FIFA World Cup 2026 Venues</h3>
+          <a class="btn btn-sm btn-secondary" href="https://www.fifa.com/fifaplus/en/tournaments/mens/worldcup/canadamexicousa2026/stadiums" target="_blank" rel="noopener noreferrer">Official FIFA Stadiums</a>
+        </div>
+        <div class="card-body">
+          <p class="section-intro">Explore every host venue for the tournament and open official stadium information in a new tab.</p>
+          <div class="stadium-grid" id="stadiumDirectoryGrid"></div>
+        </div>
+      </div>
+
+      <div class="fan-grid-layout">
+        
+        <!-- Left Side: Multilingual Assistant -->
+        <div class="card fan-chat-card">
+          <div class="card-header">
+            <h3>🤖 Multilingual Assistant</h3>
+            <div class="card-actions">
+              <span class="badge badge-green">Gemini AI</span>
+            </div>
+          </div>
+          <div class="card-body chat-container">
+            <div class="chat-messages" id="fanChatMessages">
+              <div class="chat-message assistant">
+                <div class="message-bubble">
+                  <p>Welcome to MetLife Stadium for the 2026 FIFA World Cup! I am your AI ArenaCompanion. How can I assist you with navigation, transit, menus, or sustainability today?</p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Quick Suggestion Chips -->
+            <div class="quick-chips">
+              <button class="chip-btn" data-query="Which restrooms have the shortest queue?">🚻 Shortest Restroom queue?</button>
+              <button class="chip-btn" data-query="Where can I get vegetarian/vegan food near me?">🍔 Vegan Concessions</button>
+              <button class="chip-btn" data-query="How do I get to public transit back to NYC?">🚆 Transit options</button>
+              <button class="chip-btn" data-query="What is the stadium's recycling and waste policy?">♻️ Stadium Green Policy</button>
+              <button class="chip-btn" data-query="¿Cómo puedo solicitar asistencia en silla de ruedas?">🇪🇸 Solicitar silla de ruedas</button>
+            </div>
+
+            <!-- Chat input -->
+            <form class="chat-input-area" id="fanChatForm">
+              <input type="text" id="fanChatInput" placeholder="Ask about gates, food, restrooms, or transit..." autocomplete="off">
+              <button type="submit" class="btn btn-primary">Send</button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Center Column: Interactive Stadium Map -->
+        <div class="card fan-map-card">
+          <div class="card-header flex-header">
+            <h3>stadium Layout & Navigation Map</h3>
+            <div class="map-controls">
+              <select id="stadiumSelector" class="stadium-select">
+                <option value="">Choose stadium</option>
+              </select>
+              <button class="btn btn-sm btn-map-toggle active" id="btnToggleRestrooms">🚻 Restrooms</button>
+              <button class="btn btn-sm btn-map-toggle active" id="btnToggleConcessions">🍔 Food</button>
+              <button class="btn btn-sm btn-map-toggle" id="btnToggleTransit">🚆 Gates/Transit</button>
+            </div>
+          </div>
+          <div class="card-body map-content-body">
+            <!-- Stadium Map Container -->
+            <div class="stadium-map-wrapper">
+              <svg id="stadiumSvg" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+                <!-- SVG map definitions and polygons will be inserted here dynamically -->
+                <rect width="100%" height="100%" fill="transparent"/>
+              </svg>
+              <!-- Info overlay panel for clicked element -->
+              <div class="map-info-popup" id="mapInfoPopup">
+                <button class="popup-close-btn" id="btnClosePopup">&times;</button>
+                <div class="popup-content" id="popupContent">Select an icon or gate on the map for details.</div>
+              </div>
+            </div>
+
+            <!-- Seat Locator widget -->
+            <div class="seat-locator-bar">
+              <div class="input-group">
+                <label for="seatBlockSelect">Quick Seat Locator:</label>
+                <select id="seatBlockSelect">
+                  <option value="">-- Select Section --</option>
+                  <option value="sec-101">Section 101 - North End</option>
+                  <option value="sec-108">Section 108 - East Corner</option>
+                  <option value="sec-114">Section 114 - East Sideline</option>
+                  <option value="sec-117">Section 117 - South End</option>
+                  <option value="sec-124">Section 124 - South Corner</option>
+                  <option value="sec-128">Section 128 - West Sideline</option>
+                  <option value="sec-135">Section 135 - West Corner</option>
+                  <option value="sec-140">Section 140 - North End</option>
+                </select>
+              </div>
+              <div class="input-group">
+                <label for="mapRouteFrom">Route From:</label>
+                <select id="mapRouteFrom">
+                  <option value="gate-a">Gate A (North Entrance)</option>
+                  <option value="gate-b">Gate B (East Entrance)</option>
+                  <option value="gate-c">Gate C (South Entrance)</option>
+                  <option value="gate-d">Gate D (West Entrance)</option>
+                </select>
+                <label for="mapRouteTo">To:</label>
+                <select id="mapRouteTo">
+                  <option value="sec-101">Section 101</option>
+                  <option value="sec-108">Section 108</option>
+                  <option value="sec-114">Section 114</option>
+                  <option value="sec-117">Section 117</option>
+                  <option value="sec-124">Section 124</option>
+                  <option value="sec-128">Section 128</option>
+                  <option value="sec-135">Section 135</option>
+                  <option value="sec-142">Section 142</option>
+                  <option value="c2">Hudson Valley Tacos (Sec 135)</option>
+                  <option value="r-102">Restroom Sec 102</option>
+                </select>
+                <button class="btn btn-primary btn-sm" id="btnDrawRoute">Draw Route</button>
+                <button class="btn btn-secondary btn-sm" id="btnClearRoute">Clear</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Side: Live Feeds & Reporting -->
+        <div class="fan-right-sidebar">
+          
+          <!-- Live Transit board -->
+          <div class="card transit-card">
+            <div class="card-header">
+              <h3>🚆 Real-Time Public Transit</h3>
+            </div>
+            <div class="card-body">
+              <ul class="transit-list" id="fanTransitList">
+                <!-- Populated dynamically from mockData -->
+              </ul>
+            </div>
+          </div>
+
+          <!-- Live Match Info -->
+          <div class="card match-feed-card">
+            <div class="card-header">
+              <h3>🏆 Match Live Feed</h3>
+            </div>
+            <div class="card-body">
+              <div class="match-scoreboards">
+                <div class="team-score">
+                  <span class="flag">🇺🇸</span>
+                  <span class="team-name">USA</span>
+                  <span class="score-number" id="homeScore">2</span>
+                </div>
+                <div class="match-vs">vs</div>
+                <div class="team-score">
+                  <span class="flag">🏴󠁧󠁢󠁥󠁮󠁧󠁿</span>
+                  <span class="team-name">ENG</span>
+                  <span class="score-number" id="awayScore">1</span>
+                </div>
+              </div>
+              <div class="match-status" id="matchGameTime">Second Half - 72'</div>
+              <hr>
+              <div class="match-ticker" id="matchTicker">
+                <div class="ticker-item"><span class="ticker-time">70'</span> ⚽ GOAL! Pulisic slots it home from a beautiful assist. USA leads!</div>
+                <div class="ticker-item"><span class="ticker-time">64'</span> 🟨 Yellow card to Rashford for a sliding challenge.</div>
+                <div class="ticker-item"><span class="ticker-time">52'</span> 🧤 Incredible diving save by Turner! Corner for England.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Report Issue Form -->
+          <div class="card report-issue-card">
+            <div class="card-header">
+              <h3>♻️ Report Issue / Assistance Request</h3>
+            </div>
+            <div class="card-body">
+              <form id="fanReportForm">
+                <div class="form-group">
+                  <label for="reportType">Issue / Request Type</label>
+                  <select id="reportType" required>
+                    <option value="">-- Choose Category --</option>
+                    <option value="Sustainability / Cleanliness">Compost/Recycle Bin Overflow</option>
+                    <option value="Sustainability / Cleanliness">Liquid Spill / Slip Hazard</option>
+                    <option value="Medical / Accessibility">Accessibility / Wheelchair Request</option>
+                    <option value="Medical / Accessibility">First Aid / Medical Need</option>
+                    <option value="Crowd Congestion">Severe Gate / Corridor Congestion</option>
+                    <option value="Security / General">Security Concern / Unsafe Behavior</option>
+                  </select>
+                </div>
+                
+                <div class="form-group-row">
+                  <div class="form-group">
+                    <label for="reportLocation">Location</label>
+                    <input type="text" id="reportLocation" placeholder="e.g. Section 124, Gate B" required>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="reportDescription">Details</label>
+                  <textarea id="reportDescription" rows="2" placeholder="Briefly describe what is happening..." required></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block">Submit Report to Operations</button>
+              </form>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- VIEW 2: OPERATIONS COMMAND (ArenaOps 360)   -->
+    <!-- ========================================== -->
+    <section class="portal-view" id="opsPortalView">
+      
+      <!-- Stadium Selector Bar -->
+      <div class="ops-stadium-selector-bar">
+        <label for="opsStadiumSelector">🏟️ Select Stadium:</label>
+        <select id="opsStadiumSelector" class="stadium-select">
+          <option value="">Choose stadium</option>
+        </select>
+      </div>
+
+      <!-- Current Match Info Bar -->
+      <div class="ops-match-info-bar">
+        <div class="match-info-content">
+          <span class="match-info-label">🏆 Match:</span>
+          <span class="match-info-text" id="opsCurrentMatch">Loading match...</span>
+          <span class="match-info-status" id="opsMatchStatus"></span>
+        </div>
+      </div>
+
+      <!-- Operations Dashboard Grid Layout -->
+      <div class="ops-grid-layout">
+        
+        <!-- Top Metrics Row -->
+        <div class="ops-metrics-row">
+          <div class="metric-card">
+            <div class="metric-icon">👥</div>
+            <div class="metric-info">
+              <h4>Live Attendance</h4>
+              <p class="metric-value">82,500 <span class="sub-val">/ 82,500</span></p>
+              <div class="metric-bar"><div class="fill-pct" style="width: 100%;"></div></div>
+            </div>
+          </div>
+
+          <div class="metric-card warning-glow" id="opsMetricIncidents">
+            <div class="metric-icon">🚨</div>
+            <div class="metric-info">
+              <h4>Active Incidents</h4>
+              <p class="metric-value" id="opsMetricIncidentCount">3 <span class="sub-val" id="opsMetricCriticalCount">1 Critical</span></p>
+              <span class="metric-trend text-red">⚠️ Action required</span>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-icon">♻️</div>
+            <div class="metric-info">
+              <h4>Waste Diversion Index</h4>
+              <p class="metric-value">83.4% <span class="sub-val">Sorted</span></p>
+              <div class="metric-bar"><div class="fill-pct" style="width: 83.4%; background: #00F59B;"></div></div>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-icon">⚡</div>
+            <div class="metric-info">
+              <h4>Energy Grid status</h4>
+              <p class="metric-value">72 kW <span class="sub-val">Eco Saver On</span></p>
+              <span class="metric-trend text-green">✓ Peak loads load balanced</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Heatmap + Simulation controls -->
+        <div class="card ops-heatmap-card">
+          <div class="card-header flex-header">
+            <h3>Live Crowd Density Heatmap</h3>
+            <div class="simulation-selector">
+              <span class="sim-label">Run Scenario Simulation:</span>
+              <button class="btn btn-sm btn-sim active" data-sim="normal">Normal Grid</button>
+              <button class="btn btn-sm btn-sim" data-sim="halftime">Half-time Rush</button>
+              <button class="btn btn-sm btn-sim" data-sim="egress">Match End Egress</button>
+              <button class="btn btn-sm btn-sim" data-sim="congested">Gate B Blockage</button>
+            </div>
+          </div>
+          <div class="card-body canvas-body">
+            <div class="heatmap-canvas-container">
+              <canvas id="heatmapCanvas" width="800" height="520"></canvas>
+              <!-- Info overlay on simulation state -->
+              <div class="simulation-badge" id="simulationBadge">Scenario: Normal Grid</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Incident Manager Feed & AI Dispatch Drawer -->
+        <div class="card ops-incidents-card">
+          <div class="card-header">
+            <h3>🚨 Incident Dispatch & Triage Center</h3>
+          </div>
+          <div class="card-body incident-body-grid">
+            
+            <!-- List of active incidents -->
+            <div class="incidents-feed-pane">
+              <div class="pane-filters">
+                <input type="text" id="incidentSearch" placeholder="Filter location or type...">
+                <select id="severityFilter">
+                  <option value="">All Severities</option>
+                  <option value="Critical">Critical</option>
+                  <option value="Major">Major</option>
+                  <option value="Minor">Minor</option>
+                </select>
+              </div>
+              
+              <div class="incidents-list" id="opsIncidentsList">
+                <!-- Populate dynamically from mockData -->
+              </div>
+            </div>
+
+            <!-- Triage Drawer (GenAI Response Support) -->
+            <div class="incident-triage-pane" id="triagePane">
+              <div class="triage-empty-state" id="triageEmptyState">
+                <h4>No Incident Selected</h4>
+                <p>Click on an active incident from the list to initiate GenAI-driven triage and emergency dispatch advice.</p>
+              </div>
+
+              <div class="triage-active-state hidden" id="triageActiveState">
+                <div class="triage-header">
+                  <div class="triage-title">
+                    <span class="badge" id="triageSeverityBadge">Critical</span>
+                    <h4 id="triageLocation">Section 108</h4>
+                  </div>
+                  <p id="triageReporter">Reporter: Volunteer 218</p>
+                </div>
+                <hr>
+                <div class="triage-desc">
+                  <strong>Description:</strong>
+                  <p id="triageDescription">An elderly fan is reporting chest pains...</p>
+                </div>
+                
+                <!-- Match SOP Trigger -->
+                <div class="triage-sop-match">
+                  <div class="sop-match-header">
+                    <strong>Auto-Suggested Protocol:</strong>
+                    <span id="triageSopTitle">SOP-101: Medical Emergency</span>
+                  </div>
+                  <ul class="sop-steps-list" id="triageSopSteps">
+                    <!-- Steps will load here -->
+                  </ul>
+                </div>
+
+                <!-- GenAI Decision Support Button -->
+                <button class="btn btn-primary btn-block btn-pulse" id="btnTriggerTriage">
+                  ✨ Analyze with Generative AI
+                </button>
+
+                <!-- AI Response Outputs -->
+                <div class="triage-ai-results hidden" id="triageAiResults">
+                  
+                  <!-- Loading spinner -->
+                  <div class="ai-loading" id="aiTriageLoading">
+                    <div class="spinner"></div>
+                    <p>Generating operational dispatch plan...</p>
+                  </div>
+
+                  <div class="ai-loaded-content" id="aiTriageLoaded">
+                    <div class="ai-block">
+                      <h5>📋 GenAI Dispatch Advisory</h5>
+                      <p id="aiTriageBriefing">Briefing details here...</p>
+                    </div>
+
+                    <div class="ai-block">
+                      <h5>✓ Immediate Action Steps</h5>
+                      <ul class="ai-action-checklist" id="aiActionChecklist">
+                        <!-- Checklist checkboxes -->
+                      </ul>
+                    </div>
+
+                    <div class="ai-block">
+                      <h5>📢 Draft Public Advisory Broadcasts</h5>
+                      <div class="announcement-tabs">
+                        <button class="tab-btn active" data-lang="en">EN</button>
+                        <button class="tab-btn" data-lang="es">ES</button>
+                        <button class="tab-btn" data-lang="fr">FR</button>
+                      </div>
+                      <div class="announcement-content">
+                        <textarea id="aiBroadcastText" readonly rows="3"></textarea>
+                        <button class="btn btn-sm btn-secondary btn-copy" id="btnCopyBroadcast">Copy text</button>
+                      </div>
+                    </div>
+
+                    <!-- Dispatch Controls -->
+                    <div class="triage-actions">
+                      <button class="btn btn-secondary" id="btnIncidentResolved">Mark as Resolved</button>
+                      <button class="btn btn-primary" id="btnDispatchTeam">Dispatch Volunteer Squad</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Operations Chat (Staff Advisor) -->
+        <div class="card ops-chat-card">
+          <div class="card-header">
+            <h3>📋 GenAI Operations & SOP Staff Advisor</h3>
+          </div>
+          <div class="card-body chat-container">
+            <div class="chat-messages" id="opsChatMessages">
+              <div class="chat-message assistant">
+                <div class="message-bubble">
+                  <p>Welcome to the Staff Ops Portal. You can query me on stadium standard operating procedures (SOPs), safety rules, volunteer rosters, weather policies, or coordinates. Example: <em>"What is the lost child protocol?"</em></p>
+                </div>
+              </div>
+            </div>
+            <form class="chat-input-area" id="opsChatForm">
+              <input type="text" id="opsChatInput" placeholder="Ask about SOP protocols, channel frequencies..." autocomplete="off">
+              <button type="submit" class="btn btn-primary">Query</button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Executive Narrative Health Summary Generator -->
+        <div class="card ops-summary-card">
+          <div class="card-header">
+            <h3>📈 Operations Health Summary</h3>
+          </div>
+          <div class="card-body">
+            <div class="summary-box">
+              <p id="opsSummaryText">Click the button below to parse active incidents, gate entry traffic, transportation flows, and ecological sorting levels. Generates a data-driven narrative briefing for the Venue Director.</p>
+            </div>
+            <button class="btn btn-secondary btn-block" id="btnGenerateSummary">
+              ✨ Compile GenAI Executive Briefing
+            </button>
+            <div class="ai-loading hidden" id="aiSummaryLoading">
+              <div class="spinner"></div>
+              <p>Analyzing telemetry databases...</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="app-footer">
+    <p>&copy; FIFA World Cup 2026 Stadium Operations Platform. All mock data is for demonstration purposes. Developed with Gemini GenAI.</p>
+  </footer>
+
+  <!-- App JavaScript files -->
+  <script type="module" src="mockData.js"></script>
+  <script type="module" src="aiService.js"></script>
+  <script type="module" src="map.js"></script>
+  <script type="module" src="operations.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
