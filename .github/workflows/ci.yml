@@ -1,1 +1,46 @@
+name: Full Stack Continuous Integration
+
+# Trigger this pipeline on every pull request or push to the main branch
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  # Job 1: Verify the Frontend Client
+  test-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout project code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js runtime
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install and test client
+        run: |
+          cd client
+          npm ci
+          npm run test -- --watchAll=false
+
+  # Job 2: Verify the Backend Server
+  test-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout project code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js runtime
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install and test server
+        run: |
+          cd server
+          npm ci
+          npm test
 
